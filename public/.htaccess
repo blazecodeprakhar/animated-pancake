@@ -1,43 +1,14 @@
-<IfModule mod_rewrite.c>
-  RewriteEngine On
-  RewriteBase /
+Options -MultiViews
+RewriteEngine On
+RewriteBase /
+DirectoryIndex index.html
 
-  # 1. Force HTTPS
-  # If the request is not HTTPS, redirect to HTTPS
-  RewriteCond %{HTTPS} off
-  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# 1. Force HTTPS (Standard method)
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-  # 2. Handle Single Page Application (SPA) Routing
-  RewriteRule ^index\.html$ - [L]
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule . /index.html [L]
-</IfModule>
-
-<IfModule mod_headers.c>
-  # 3. Security Headers
-  
-  # HTTP Strict Transport Security (HSTS)
-  # Tells browsers to ONLY use HTTPS for the next year (max-age is in seconds)
-  Header set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-
-  # Prevent MIME type sniffing
-  Header set X-Content-Type-Options "nosniff"
-
-  # Protect against Clickjacking (allows same origin framing)
-  Header set X-Frame-Options "SAMEORIGIN"
-
-  # Enable XSS filtering in browsers that support it
-  Header set X-XSS-Protection "1; mode=block"
-
-  # Control what information is sent in the Referer header
-  Header set Referrer-Policy "strict-origin-when-cross-origin"
-
-  # Content Security Policy (CSP)
-  # Allows resources from self, https, data schemes. Allows unsafe-inline/eval for React/Vite capability.
-  # This is a balanced policy for security and functionality.
-  Header set Content-Security-Policy "default-src 'self' https: data: 'unsafe-inline' 'unsafe-eval'; frame-ancestors 'self';"
-  
-  # Permissions Policy (formerly Feature Policy) to disable sensitive features not used
-  Header set Permissions-Policy "geolocation=(), microphone=(), camera=()"
-</IfModule>
+# 2. SPA Routing for React/Vite
+# If the requested file or directory does not exist, redirect to index.html
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.html [QSA,L]
